@@ -1,0 +1,6 @@
+spring:
+  datasource:
+    data: data_test.sql
+  shell:
+    interactive:
+      enabled: false
