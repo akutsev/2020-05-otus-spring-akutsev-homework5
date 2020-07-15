@@ -14,23 +14,25 @@ import java.util.Map;
 @Repository
 public class BookDaoImpl implements BookDao{
 	private final NamedParameterJdbcOperations jdbc;
-	private AuthorDaoImpl authorDaoImpl;
-	private GenreDaoImpl genreDaoImpl;
 
 	private final RowMapper<Book> bookRowMapper = (resultSet, rowNum) -> {
-		int id = resultSet.getInt("id");
-		String bookName = resultSet.getNString("name");
-		Author author = authorDaoImpl.getAById(resultSet.getInt("author_id"));
-		Genre genre = genreDaoImpl.getAById(resultSet.getInt("genre_id"));
+		int bookId = resultSet.getInt("book_id");
+		String bookName = resultSet.getNString("book_name");
 
-		return new Book(id, bookName, author, genre);
+		int authorId = resultSet.getInt("author_id");
+		String authorName = resultSet.getNString("author_name");
+		Author author = new Author(authorId, authorName);
+
+		int genreId = resultSet.getInt("genre_id");
+		String genreName = resultSet.getNString("genre_name");
+		Genre genre = new Genre(genreId, genreName);
+
+		return new Book(bookId, bookName, author, genre);
 	};
 
 	@Autowired
-	public BookDaoImpl(NamedParameterJdbcOperations jdbc, AuthorDaoImpl authorDaoImpl, GenreDaoImpl genreDaoImpl) {
+	public BookDaoImpl(NamedParameterJdbcOperations jdbc) {
 		this.jdbc = jdbc;
-		this.authorDaoImpl = authorDaoImpl;
-		this.genreDaoImpl = genreDaoImpl;
 	}
 
 	@Override
@@ -50,13 +52,18 @@ public class BookDaoImpl implements BookDao{
 		Map<String, Integer> namedParameters = Map.of(
 				"bookID", id
 		);
-		return jdbc.queryForObject("select id, name, author_id, genre_id from books " +
-				"where id=:bookID", namedParameters, bookRowMapper);
+		return jdbc.queryForObject("SELECT books.id AS book_id, books.name AS book_name, authors.id AS author_id" +
+				", authors.name AS author_name, genres.id AS genre_id, genres.genre_name AS genre_name FROM " +
+				"((books INNER JOIN authors ON books.author_id = authors.id)" +
+				"INNER JOIN genres ON books.genre_id = genres.id) WHERE books.id= :bookID", namedParameters, bookRowMapper);
 	}
 
 	@Override
 	public List<Book> getAll() {
-		return jdbc.query("select id, name, author_id, genre_id from books", bookRowMapper);
+		return jdbc.query("SELECT books.id AS book_id, books.name AS book_name, authors.id AS author_id" +
+				", authors.name AS author_name, genres.id AS genre_id, genres.genre_name AS genre_name FROM " +
+				"((books INNER JOIN authors ON books.author_id = authors.id)" +
+				"INNER JOIN genres ON books.genre_id = genres.id)", bookRowMapper);
 	}
 
 	@Override
