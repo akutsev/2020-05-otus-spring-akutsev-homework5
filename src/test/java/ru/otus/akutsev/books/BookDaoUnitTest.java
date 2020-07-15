@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("Тест ДАО работы с книгами")
 @JdbcTest
-@Import({BookDaoImpl.class, AuthorDaoImpl.class, GenreDaoImpl.class})
+@Import(BookDaoImpl.class)
 public class BookDaoUnitTest {
 
 	@Autowired
